@@ -405,6 +405,8 @@ contract StakedToken is Context {
     uint256 public constant MIN_STAKED_TIME = 92 days;
 	uint256 public constant MAX_STAKED_COUNT = 20;
 
+	uint256 _shiftTime = 0;
+
     mapping(address => Stake[]) private _staked;
 
 	struct Stake {
@@ -430,7 +432,8 @@ contract StakedToken is Context {
 		require(getCountStake(onBehalfOf) <= MAX_STAKED_COUNT, 'INVALID_STAKED_COUNT');
 
 		IERC20(STAKED_TOKEN).safeTransferFrom(_msgSender(), address(this), amount);
-		Stake memory userStake = Stake(block.timestamp, block.timestamp, amount, false);
+		uint256 currentTime = getCurrentTime();
+		Stake memory userStake = Stake(currentTime, currentTime, amount, false);
         _staked[onBehalfOf].push(userStake);
 		emit Staked(_msgSender(), onBehalfOf, amount);
 	}
@@ -441,9 +444,9 @@ contract StakedToken is Context {
 
 	function unStakeAny(address onBehalfOf, uint256 index) public {
 		require(onBehalfOf != address(0), 'INVALID_ZERO_ADDRESS');
-		getReward(onBehalfOf);
-
 		address sender = _msgSender();
+
+		getReward(onBehalfOf);
 		require(index < getCountStake(sender), 'INVALID_INDEX');
 
 		require(isPassedTime(sender, index), 'TIME_NOT_PASSED');
@@ -505,7 +508,7 @@ contract StakedToken is Context {
 	function isPassedTime(address user, uint256 index) public view returns (bool) {
 		require(user != address(0), 'INVALID_ZERO_ADDRESS');
 		(uint256 starting,,,) = viewUserStakeAny(user, index);
-		return (block.timestamp - starting) > MIN_STAKED_TIME;
+		return (getCurrentTime() - starting) > MIN_STAKED_TIME;
 	}
 
 	function getWeekday(uint256 timestamp) public pure returns (uint8) {
@@ -513,7 +516,7 @@ contract StakedToken is Context {
 	}
 
 	function calcRewardByIndex(address user, uint256 index) public view returns (uint256 reward, uint256 lastTime) {
-		uint256 currentTime = block.timestamp;
+		uint256 currentTime = getCurrentTime();
 		(, uint256 lastRewardTime, uint256 amount,) = viewUserStakeAny(user, index);
 		uint8 dayNumber = getWeekday(lastRewardTime);
 		lastRewardTime += (7 - dayNumber) * DAY_IN_SECONDS;
@@ -533,5 +536,13 @@ contract StakedToken is Context {
 
 	function setLastRewardTime(address user, uint256 index, uint256 newTime) internal {
 		_staked[user][index].lastRewardTime = newTime;
+	}
+
+	function getCurrentTime() internal view returns(uint256) {
+		return block.timestamp + _shiftTime;
+	}
+
+	function incrementShiftTime(uint256 incValue) external {
+		_shiftTime += incValue;
 	}
 }

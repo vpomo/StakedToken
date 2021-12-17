@@ -14,11 +14,19 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
 
     amount = 1000*decimal
 
-    graph.approve(instance, amount, {'from': graph_whale})
+    graph.transfer(instance, amount*1000, {'from': graph_whale})
+
+    graph.approve(instance, amount*1000, {'from': graph_whale})
     tx = instance.stake(graph_whale, amount, {'from': graph_whale})
     #print('tx = ', tx.info())
 
     print('getCountStake', instance.getCountStake(graph_whale))
+    print('viewUserStake', instance.viewUserStake(graph_whale))
+    print('calcRewardByIndex 1', instance.calcRewardByIndex(graph_whale, 0))
+
+    instance.incrementShiftTime(one_day*8)
+
+    print('calcRewardByIndex 2', instance.calcRewardByIndex(graph_whale, 0))
     print('viewUserStake', instance.viewUserStake(graph_whale))
 
     chain.sleep(one_day*2)
@@ -66,5 +74,20 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
     chain.sleep(one_day*65)
     chain.mine()
     tx = instance.unStake(accounts[0], {'from': graph_whale})
-    print('tx = ', tx.info())
+    #print('tx = ', tx.info())
     print('balance GRT of accounts[0] after', graph.balanceOf(accounts[0])/decimal) # 290_000_000
+    print('viewUserStakeAny 0', instance.viewUserStakeAny(graph_whale, 0))
+    print('viewUserStakeAny 1', instance.viewUserStakeAny(graph_whale, 1))
+
+    print('calcRewardByIndex 0', instance.calcRewardByIndex(graph_whale, 0))
+    print('calcRewardByIndex 1', instance.calcRewardByIndex(graph_whale, 1))
+    chain.sleep(one_day*21)
+    chain.mine()
+    print('calcRewardByIndex 0', instance.calcRewardByIndex(graph_whale, 0))
+    print('calcRewardByIndex 1', instance.calcRewardByIndex(graph_whale, 1))
+
+
+    print('balance GRT of instance before', graph.balanceOf(instance)/decimal)
+    tx = instance.unStakeAny(accounts[0], 1, {'from': graph_whale})
+    print('viewUserStakeAny 0', instance.viewUserStakeAny(graph_whale, 0))
+    print('viewUserStakeAny 1', instance.viewUserStakeAny(graph_whale, 1))
