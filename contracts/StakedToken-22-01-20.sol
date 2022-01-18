@@ -630,7 +630,7 @@ contract StakedToken is Context, Ownable {
 	function calcRewardByIndex(address user, uint256 index) public view returns (uint256 reward, uint256 lastTime) {
 		uint256 currentTime = getCurrentTime();
 		(uint256 startTime, uint256 endTime, uint256 lastRewardTime, uint256 amount) = viewUserStakeAny(user, index);
-		(uint256 daysCount, uint256 startDayNumber) = getRewardDayData(startTime, lastRewardTime);
+		(uint256 daysCount, uint256 startDayNumber) = getRewardDayData(startTime, endTime, lastRewardTime);
 
 		if (daysCount > 0) {
 			reward = calcReward(daysCount, startDayNumber, amount);
@@ -679,17 +679,37 @@ contract StakedToken is Context, Ownable {
 		}
 	}
 
-	function getRewardDayData(uint256 beginTime, uint256 lastTime) internal returns (uint256 dayCount, uint256 startDay) {
+	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) internal
+	    returns (uint256 dayCount, uint256 startDay) {
 		uint256 currentTime = getCurrentTime();
-		uint256 rewardDayCount = (currentTime - (beginTime + MIN_STAKED_TIME)) / 1 days;
-		if (rewardDayCount > 0) {
+		if (currentTime > beginTime + MIN_STAKED_TIME) {
 			if (lastTime > 0) {
-				return ((currentTime - (lastTime + MIN_STAKED_TIME)) / 1 days, getDayNumber(lastTime));
+				if (lastTime >= finishTime) {
+					return (0, getDayNumber(lastTime));
+				}
+				if (finishTime == 0) {
+					return ((currentTime - (lastTime + MIN_STAKED_TIME)) / 1 days, getDayNumber(lastTime));
+				} else {
+					if (currentTime > finishTime + MIN_STAKED_TIME) {
+						return ((finishTime - lastTime) / 1 days, getDayNumber(lastTime));
+					} else {
+						return ((currentTime - (lastTime + MIN_STAKED_TIME)) / 1 days, getDayNumber(lastTime));
+					}
+				}
 			} else {
-				return (rewardDayCount, getDayNumber(beginTime));
+				if (finishTime == 0) {
+					uint256 rewardDayCount = (currentTime - (beginTime + MIN_STAKED_TIME)) / 1 days;
+					return (rewardDayCount, getDayNumber(beginTime));
+				} else {
+					if (currentTime > finishTime + MIN_STAKED_TIME) {
+						return ((finishTime - beginTime) / 1 days, getDayNumber(beginTime));
+					} else {
+						return ((currentTime - (beginTime + MIN_STAKED_TIME)) / 1 days, getDayNumber(beginTime));
+					}
+				}
 			}
 		}
-		return (0, 0);
+		return (0, getDayNumber(beginTime));
 	}
 
 	function addRewardFund(uint256 amount) public onlyOwner {
