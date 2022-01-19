@@ -3,7 +3,7 @@ from brownie import config
 
 @pytest.fixture(scope="module")
 def instance(StakedToken, accounts):
-    return StakedToken.deploy('0xc944e90c64b2c07662a292be6244bdf05cda44a7', {'from': accounts[0]})
+    return StakedToken.deploy('0xc944e90c64b2c07662a292be6244bdf05cda44a7', accounts[2], {'from': accounts[0]})
 
 @pytest.fixture
 def graph(interface):

@@ -438,12 +438,10 @@ contract StakedToken is Context, Ownable {
 
 	using SafeERC20 for IERC20;
 	uint256 constant DAY_IN_SECONDS = 86400;
-	uint256 constant ONE_WEEK_REWARD_PERCENT = 2;
-	uint256 constant FULL_PERCENT = 100;
 
 	IERC20 public immutable STAKED_TOKEN;
     uint256 public constant MIN_STAKED_TIME = 30 days;
-	uint256 public constant MAX_STAKED_COUNT = 20;
+	uint256 public constant MAX_STAKED_COUNT = 10;
 
 	uint256 public rewardTokensByDay = 300;
 
@@ -455,7 +453,6 @@ contract StakedToken is Context, Ownable {
 	uint256 public totalStakedTokens;
 
 	mapping(address => Stake[]) private _staked;
-	mapping(uint256 => uint256) private _countStakesByDay;
 
 	struct Stake {
 		uint256 startTime;
@@ -469,7 +466,16 @@ contract StakedToken is Context, Ownable {
 		uint256 rewardAmount;
 	}
 
-	ChangeRewardToken[] changeRewardTokenAll;
+	struct DailyStakeInfo {
+		uint256 stakesCount;
+		uint256 stakedTokenAmount;
+	}
+
+	mapping(uint256 => DailyStakeInfo) private _countStakesByDay;
+
+	ChangeRewardToken[] private changeRewardTokenAll;
+
+	uint256 _shiftTime = 0;
 
 	event Staked(address indexed from, address indexed onBehalfOf, uint256 amount);
 	event UnStake(address indexed from, address indexed to, uint256 amount);
@@ -491,11 +497,12 @@ contract StakedToken is Context, Ownable {
 
 		IERC20(STAKED_TOKEN).safeTransferFrom(_msgSender(), address(this), amount);
 		uint256 currentTime = getCurrentTime();
-		Stake memory userStake = Stake(currentTime, 0, currentTime, amount);
+		Stake memory userStake = Stake(currentTime, 0, 0, amount);
         _staked[onBehalfOf].push(userStake);
 		totalStakesCount++;
 		totalStakedTokens += amount;
-		_countStakesByDay[getCurrentDayNumber()] = totalStakesCount;
+		_countStakesByDay[getCurrentDayNumber()].stakesCount = totalStakesCount;
+		_countStakesByDay[getCurrentDayNumber()].stakedTokenAmount = totalStakedTokens;
 		emit Staked(_msgSender(), onBehalfOf, amount);
 	}
 
@@ -518,7 +525,8 @@ contract StakedToken is Context, Ownable {
 
 		totalStakesCount--;
 		totalStakedTokens -= stakedAmount;
-		_countStakesByDay[getCurrentDayNumber()] = totalStakesCount;
+		_countStakesByDay[getCurrentDayNumber()].stakesCount = totalStakesCount;
+		_countStakesByDay[getCurrentDayNumber()].stakedTokenAmount = totalStakedTokens;
 
 		IERC20(STAKED_TOKEN).safeTransfer(onBehalfOf, stakedAmount);
 		emit UnStake(msg.sender, onBehalfOf, stakedAmount);
@@ -569,6 +577,19 @@ contract StakedToken is Context, Ownable {
 		_count = _staked[user].length;
 	}
 
+	function getChangeRewardCount() public view returns (uint256 _count) {
+		_count = changeRewardTokenAll.length;
+	}
+
+	function viewChangeRewardByIndex(uint256 index) public view returns
+		(uint256 _currentDayNumber, uint256 _rewardAmount) {
+		return (changeRewardTokenAll[index].currentDayNumber, changeRewardTokenAll[index].rewardAmount);
+	}
+
+	function viewCountStakesByDay(uint256 dayNumber) public view returns (uint256 _stakesCount, uint256 _stakedTokenAmount) {
+		return(_countStakesByDay[dayNumber].stakesCount, _countStakesByDay[dayNumber].stakedTokenAmount);
+	}
+
 	function getDayNumber(uint256 timestamp) public pure returns (uint256) {
 		return timestamp / 1 days;
 	}
@@ -593,18 +614,18 @@ contract StakedToken is Context, Ownable {
 		}
 	}
 
-	function calcReward(uint256 dayCount, uint256 startDay, uint256 amount) internal view returns (uint256 reward) {
+	function calcReward(uint256 dayCount, uint256 startDay, uint256 amount) public view returns (uint256 reward) { //for test
 		for (uint256 i = 0; i < dayCount; i++) {
-			reward += getDailyAmount(startDay, amount);
-			startDay++;
+			reward += getDailyAmount(startDay + i, amount);
 		}
 	}
 
-	function getDailyAmount(uint256 startDay, uint256 amount) internal view returns (uint256 dailyAmount) {
-		dailyAmount = amount * getRewardTokenAmount(startDay) / getCurrentCountStakes(startDay);
+	function getDailyAmount(uint256 startDay, uint256 amount) public view returns (uint256 dailyAmount) { //for test
+		(uint256 _currentStakesCount, uint256 _currentTokenAmount) = getCurrentCountStakes(startDay);
+		dailyAmount = amount  * getRewardTokenAmount(startDay) / _currentTokenAmount;
 	}
 
-	function getRewardTokenAmount(uint256 startDay) internal view returns (uint256) {
+	function getRewardTokenAmount(uint256 startDay) public view returns (uint256) { //for test
 		uint256 index = 0;
 		while(index < changeRewardTokenAll.length) {
 			if (startDay > changeRewardTokenAll[index].currentDayNumber) {
@@ -613,22 +634,25 @@ contract StakedToken is Context, Ownable {
 				return changeRewardTokenAll[index].rewardAmount;
 			}
 		}
-		return 0;
+		return changeRewardTokenAll[index-1].rewardAmount;
 	}
 
-	function getCurrentCountStakes(uint256 startDay) internal view returns (uint256 currentCountStakes) {
-		if (_countStakesByDay[startDay] > 0) {
-			currentCountStakes = _countStakesByDay[startDay];
+	function getCurrentCountStakes(uint256 startDay) public view returns //for test
+	(uint256 currentStakesCount, uint256 currentTokenAmount) {
+		if (_countStakesByDay[startDay].stakesCount > 0) {
+			currentStakesCount = _countStakesByDay[startDay].stakesCount;
+			currentTokenAmount = _countStakesByDay[startDay].stakedTokenAmount;
 		} else {
-			uint256 currentStartDay = startDay;
-			while(currentCountStakes == 0 && currentStartDay >= startDay) {
+			uint256 currentStartDay = startDay - 1;
+			while(currentStakesCount == 0) {
+				currentStakesCount = _countStakesByDay[currentStartDay].stakesCount;
+				currentTokenAmount = _countStakesByDay[currentStartDay].stakedTokenAmount;
 				currentStartDay --;
-				currentCountStakes = _countStakesByDay[currentStartDay];
 			}
 		}
 	}
 
-	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) internal view
+	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) public view //for test public
 	    returns (uint256 dayCount, uint256 startDay) {
 		uint256 currentTime = getCurrentTime();
 		if (currentTime > beginTime + MIN_STAKED_TIME) {
@@ -689,6 +713,10 @@ contract StakedToken is Context, Ownable {
 	}
 
 	function getCurrentTime() internal view returns(uint256) {
-		return block.timestamp;
+		return block.timestamp + _shiftTime;
+	}
+
+	function incrementShiftTime(uint256 incValue) external {
+		_shiftTime += incValue;
 	}
 }
