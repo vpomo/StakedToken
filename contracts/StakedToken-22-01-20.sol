@@ -1,51 +1,39 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-/*
 
-*/
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
- *//*
-
+ */
 interface IERC20 {
-	*/
-/**
+	/**
 	 * @dev Returns the amount of tokens in existence.
-	 *//*
-
+	 */
 	function totalSupply() external view returns (uint256);
 
-	*/
-/**
+	/**
 	 * @dev Returns the amount of tokens owned by `account`.
-	 *//*
-
+	 */
 	function balanceOf(address account) external view returns (uint256);
 
-	*/
-/**
+	/**
 	 * @dev Moves `amount` tokens from the caller's account to `recipient`.
 	 *
 	 * Returns a boolean value indicating whether the operation succeeded.
 	 *
 	 * Emits a {Transfer} event.
-	 *//*
-
+	 */
 	function transfer(address recipient, uint256 amount) external returns (bool);
 
-	*/
-/**
+	/**
 	 * @dev Returns the remaining number of tokens that `spender` will be
 	 * allowed to spend on behalf of `owner` through {transferFrom}. This is
 	 * zero by default.
 	 *
 	 * This value changes when {approve} or {transferFrom} are called.
-	 *//*
-
+	 */
 	function allowance(address owner, address spender) external view returns (uint256);
 
-	*/
-/**
+	/**
 	 * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
 	 *
 	 * Returns a boolean value indicating whether the operation succeeded.
@@ -58,12 +46,10 @@ interface IERC20 {
 	 * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
 	 *
 	 * Emits an {Approval} event.
-	 *//*
-
+	 */
 	function approve(address spender, uint256 amount) external returns (bool);
 
-	*/
-/**
+	/**
 	 * @dev Moves `amount` tokens from `sender` to `recipient` using the
 	 * allowance mechanism. `amount` is then deducted from the caller's
 	 * allowance.
@@ -71,41 +57,33 @@ interface IERC20 {
 	 * Returns a boolean value indicating whether the operation succeeded.
 	 *
 	 * Emits a {Transfer} event.
-	 *//*
-
+	 */
 	function transferFrom(
 		address sender,
 		address recipient,
 		uint256 amount
 	) external returns (bool);
 
-	*/
-/**
+	/**
 	 * @dev Emitted when `value` tokens are moved from one account (`from`) to
 	 * another (`to`).
 	 *
 	 * Note that `value` may be zero.
-	 *//*
-
+	 */
 	event Transfer(address indexed from, address indexed to, uint256 value);
 
-	*/
-/**
+	/**
 	 * @dev Emitted when the allowance of a `spender` for an `owner` is set by
 	 * a call to {approve}. `value` is the new allowance.
-	 *//*
-
+	 */
 	event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-*/
 /**
  * @dev Collection of functions related to the address type
- *//*
-
+ */
 library Address {
-    */
-/**
+    /**
      * @dev Returns true if `account` is a contract.
      *
      * [IMPORTANT]
@@ -121,8 +99,7 @@ library Address {
      *  - an address where a contract will be created
      *  - an address where a contract lived, but was destroyed
      * ====
-     *//*
-
+     */
     function isContract(address account) internal view returns (bool) {
         // This method relies on extcodesize, which returns 0 for contracts in
         // construction, since the code is only stored at the end of the
@@ -135,8 +112,7 @@ library Address {
         return size > 0;
     }
 
-    */
-/**
+    /**
      * @dev Replacement for Solidity's `transfer`: sends `amount` wei to
      * `recipient`, forwarding all available gas and reverting on errors.
      *
@@ -151,8 +127,7 @@ library Address {
      * taken to not create reentrancy vulnerabilities. Consider using
      * {ReentrancyGuard} or the
      * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
-     *//*
-
+     */
     function sendValue(address payable recipient, uint256 amount) internal {
         require(address(this).balance >= amount, "Address: insufficient balance");
 
@@ -160,8 +135,7 @@ library Address {
         require(success, "Address: unable to send value, recipient may have reverted");
     }
 
-    */
-/**
+    /**
      * @dev Performs a Solidity function call using a low level `call`. A
      * plain `call` is an unsafe replacement for a function call: use this
      * function instead.
@@ -178,20 +152,17 @@ library Address {
      * - calling `target` with `data` must not revert.
      *
      * _Available since v3.1._
-     *//*
-
+     */
     function functionCall(address target, bytes memory data) internal returns (bytes memory) {
         return functionCall(target, data, "Address: low-level call failed");
     }
 
-    */
-/**
+    /**
      * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`], but with
      * `errorMessage` as a fallback revert reason when `target` reverts.
      *
      * _Available since v3.1._
-     *//*
-
+     */
     function functionCall(
         address target,
         bytes memory data,
@@ -200,8 +171,7 @@ library Address {
         return functionCallWithValue(target, data, 0, errorMessage);
     }
 
-    */
-/**
+    /**
      * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
      * but also transferring `value` wei to `target`.
      *
@@ -211,8 +181,7 @@ library Address {
      * - the called Solidity function must be `payable`.
      *
      * _Available since v3.1._
-     *//*
-
+     */
     function functionCallWithValue(
         address target,
         bytes memory data,
@@ -221,14 +190,12 @@ library Address {
         return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
     }
 
-    */
-/**
+    /**
      * @dev Same as {xref-Address-functionCallWithValue-address-bytes-uint256-}[`functionCallWithValue`], but
      * with `errorMessage` as a fallback revert reason when `target` reverts.
      *
      * _Available since v3.1._
-     *//*
-
+     */
     function functionCallWithValue(
         address target,
         bytes memory data,
@@ -242,26 +209,22 @@ library Address {
         return verifyCallResult(success, returndata, errorMessage);
     }
 
-    */
-/**
+    /**
      * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
      * but performing a static call.
      *
      * _Available since v3.3._
-     *//*
-
+     */
     function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {
         return functionStaticCall(target, data, "Address: low-level static call failed");
     }
 
-    */
-/**
+    /**
      * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
      * but performing a static call.
      *
      * _Available since v3.3._
-     *//*
-
+     */
     function functionStaticCall(
         address target,
         bytes memory data,
@@ -273,26 +236,22 @@ library Address {
         return verifyCallResult(success, returndata, errorMessage);
     }
 
-    */
-/**
+    /**
      * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
      * but performing a delegate call.
      *
      * _Available since v3.4._
-     *//*
-
+     */
     function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {
         return functionDelegateCall(target, data, "Address: low-level delegate call failed");
     }
 
-    */
-/**
+    /**
      * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
      * but performing a delegate call.
      *
      * _Available since v3.4._
-     *//*
-
+     */
     function functionDelegateCall(
         address target,
         bytes memory data,
@@ -304,14 +263,12 @@ library Address {
         return verifyCallResult(success, returndata, errorMessage);
     }
 
-    */
-/**
+    /**
      * @dev Tool to verifies that a low level call was successful, and revert if it wasn't, either by bubbling the
      * revert reason using the provided one.
      *
      * _Available since v4.3._
-     *//*
-
+     */
     function verifyCallResult(
         bool success,
         bytes memory returndata,
@@ -335,7 +292,6 @@ library Address {
     }
 }
 
-*/
 /**
  * @title SafeERC20
  * @dev Wrappers around ERC20 operations that throw on failure (when the token
@@ -344,8 +300,7 @@ library Address {
  * successful.
  * To use this library you can add a `using SafeERC20 for IERC20;` statement to your contract,
  * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
- *//*
-
+ */
 library SafeERC20 {
     using Address for address;
 
@@ -366,15 +321,13 @@ library SafeERC20 {
         _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
     }
 
-    */
-/**
+    /**
      * @dev Deprecated. This function has issues similar to the ones found in
      * {IERC20-approve}, and its usage is discouraged.
      *
      * Whenever possible, use {safeIncreaseAllowance} and
      * {safeDecreaseAllowance} instead.
-     *//*
-
+     */
     function safeApprove(
         IERC20 token,
         address spender,
@@ -412,14 +365,12 @@ library SafeERC20 {
         }
     }
 
-    */
-/**
+    /**
      * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
      * on the return value: the return value is optional (but if data is returned, it must not be false).
      * @param token The token targeted by the call.
      * @param data The call data (encoded using abi.encode or one of its variants).
-     *//*
-
+     */
     function _callOptionalReturn(IERC20 token, bytes memory data) private {
         // We need to perform a low level call here, to bypass Solidity's return data size checking mechanism, since
         // we're implementing it ourselves. We use {Address.functionCall} to perform this call, which verifies that
@@ -432,7 +383,6 @@ library SafeERC20 {
         }
     }
 }
-*/
 
 abstract contract Context {
     function _msgSender() internal view virtual returns (address) {
@@ -497,12 +447,12 @@ contract StakedToken is Context, Ownable {
 
 	uint256 public rewardTokensByDay = 300;
 
-	uint256 public immutable startDayNumber;
+	uint256 public immutable startedDayNumber;
 
-	uint256 public totalStakedToken;
 	uint256 public totalReceivedReward;
 	uint256 public totalAddedTokenForReward;
 	uint256 public totalStakesCount;
+	uint256 public totalStakedTokens;
 
 	mapping(address => Stake[]) private _staked;
 	mapping(uint256 => uint256) private _countStakesByDay;
@@ -530,7 +480,7 @@ contract StakedToken is Context, Ownable {
 	constructor(IERC20 stakedToken, address admin) Ownable(admin) {
 		require(address(stakedToken) != address(0), 'INVALID_ZERO_ADDRESS');
 		STAKED_TOKEN = stakedToken;
-		startDayNumber = getCurrentDayNumber();
+		startedDayNumber = getCurrentDayNumber();
 		logRewardTokenByDay(rewardTokensByDay);
 	}
 
@@ -541,10 +491,10 @@ contract StakedToken is Context, Ownable {
 
 		IERC20(STAKED_TOKEN).safeTransferFrom(_msgSender(), address(this), amount);
 		uint256 currentTime = getCurrentTime();
-		Stake memory userStake = Stake(currentTime, currentTime, amount, false);
+		Stake memory userStake = Stake(currentTime, 0, currentTime, amount);
         _staked[onBehalfOf].push(userStake);
 		totalStakesCount++;
-		totalStakedToken += amount;
+		totalStakedTokens += amount;
 		_countStakesByDay[getCurrentDayNumber()] = totalStakesCount;
 		emit Staked(_msgSender(), onBehalfOf, amount);
 	}
@@ -567,7 +517,7 @@ contract StakedToken is Context, Ownable {
 		_staked[sender][index].endTime = getCurrentTime();
 
 		totalStakesCount--;
-		totalStakedToken -= amount;
+		totalStakedTokens -= stakedAmount;
 		_countStakesByDay[getCurrentDayNumber()] = totalStakesCount;
 
 		IERC20(STAKED_TOKEN).safeTransfer(onBehalfOf, stakedAmount);
@@ -623,39 +573,38 @@ contract StakedToken is Context, Ownable {
 		return timestamp / 1 days;
 	}
 
-	function getCurrentDayNumber() public pure returns (uint256) {
+	function getCurrentDayNumber() public view returns (uint256) {
 		return getCurrentTime() / 1 days;
 	}
 
 	function calcRewardByIndex(address user, uint256 index) public view returns (uint256 reward, uint256 lastTime) {
-		uint256 currentTime = getCurrentTime();
-		(uint256 startTime, uint256 endTime, uint256 lastRewardTime, uint256 amount) = viewUserStakeAny(user, index);
-		(uint256 daysCount, uint256 startDayNumber) = getRewardDayData(startTime, endTime, lastRewardTime);
+		(uint256 _startTime, uint256 _endTime, uint256 _lastRewardTime, uint256 amount) = viewUserStakeAny(user, index);
+		(uint256 _daysCount, uint256 _startDayNumber) = getRewardDayData(_startTime, _endTime, _lastRewardTime);
 
-		if (daysCount > 0) {
-			reward = calcReward(daysCount, startDayNumber, amount);
-			if (lastRewardTime == 0) {
-				lastTime = startTime + (1 days) * daysCount;
+		if (_daysCount > 0) {
+			reward = calcReward(_daysCount, _startDayNumber, amount);
+			if (_lastRewardTime == 0) {
+				lastTime = _startTime + (1 days) * _daysCount;
 			} else {
-				lastTime = lastRewardTime + (1 days) * daysCount;
+				lastTime = _lastRewardTime + (1 days) * _daysCount;
 			}
 		} else {
 			reward = 0;
 		}
 	}
 
-	function calcReward(uint256 dayCount, uint256 startDay, uint256 amount) internal returns (uint256 reward) {
+	function calcReward(uint256 dayCount, uint256 startDay, uint256 amount) internal view returns (uint256 reward) {
 		for (uint256 i = 0; i < dayCount; i++) {
 			reward += getDailyAmount(startDay, amount);
 			startDay++;
 		}
 	}
 
-	function getDailyAmount(uint256 startDay, uint256 amount) internal returns (uint256 dailyAmount) {
+	function getDailyAmount(uint256 startDay, uint256 amount) internal view returns (uint256 dailyAmount) {
 		dailyAmount = amount * getRewardTokenAmount(startDay) / getCurrentCountStakes(startDay);
 	}
 
-	function getRewardTokenAmount(uint256 startDay) internal returns (uint256) {
+	function getRewardTokenAmount(uint256 startDay) internal view returns (uint256) {
 		uint256 index = 0;
 		while(index < changeRewardTokenAll.length) {
 			if (startDay > changeRewardTokenAll[index].currentDayNumber) {
@@ -667,7 +616,7 @@ contract StakedToken is Context, Ownable {
 		return 0;
 	}
 
-	function getCurrentCountStakes(uint256 startDay) internal returns (uint256 currentCountStakes) {
+	function getCurrentCountStakes(uint256 startDay) internal view returns (uint256 currentCountStakes) {
 		if (_countStakesByDay[startDay] > 0) {
 			currentCountStakes = _countStakesByDay[startDay];
 		} else {
@@ -679,7 +628,7 @@ contract StakedToken is Context, Ownable {
 		}
 	}
 
-	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) internal
+	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) internal view
 	    returns (uint256 dayCount, uint256 startDay) {
 		uint256 currentTime = getCurrentTime();
 		if (currentTime > beginTime + MIN_STAKED_TIME) {
