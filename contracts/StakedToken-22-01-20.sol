@@ -520,7 +520,6 @@ contract StakedToken is Context, Ownable {
 
 		uint256 stakedAmount = _staked[sender][index].amount;
 
-		//_staked[sender][index].amount = 0;
 		_staked[sender][index].endTime = getCurrentTime();
 
 		totalStakesCount--;
@@ -614,18 +613,20 @@ contract StakedToken is Context, Ownable {
 		}
 	}
 
-	function calcReward(uint256 dayCount, uint256 startDay, uint256 amount) public view returns (uint256 reward) { //for test
+	function calcReward(uint256 dayCount, uint256 startDay, uint256 amount) private view returns (uint256 reward) {
 		for (uint256 i = 0; i < dayCount; i++) {
 			reward += getDailyAmount(startDay + i, amount);
 		}
 	}
 
-	function getDailyAmount(uint256 startDay, uint256 amount) public view returns (uint256 dailyAmount) { //for test
-		(uint256 _currentStakesCount, uint256 _currentTokenAmount) = getCurrentCountStakes(startDay);
-		dailyAmount = amount  * getRewardTokenAmount(startDay) / _currentTokenAmount;
+	function getDailyAmount(uint256 startDay, uint256 amount) private view returns (uint256 dailyAmount) {
+		(, uint256 _currentTokenAmount) = getCurrentCountStakes(startDay);
+		if(_currentTokenAmount > 0) {
+			dailyAmount = amount  * getRewardTokenAmount(startDay) / _currentTokenAmount;
+		}
 	}
 
-	function getRewardTokenAmount(uint256 startDay) public view returns (uint256) { //for test
+	function getRewardTokenAmount(uint256 startDay) private view returns (uint256) {
 		uint256 index = 0;
 		while(index < changeRewardTokenAll.length) {
 			if (startDay > changeRewardTokenAll[index].currentDayNumber) {
@@ -637,7 +638,7 @@ contract StakedToken is Context, Ownable {
 		return changeRewardTokenAll[index-1].rewardAmount;
 	}
 
-	function getCurrentCountStakes(uint256 startDay) public view returns //for test
+	function getCurrentCountStakes(uint256 startDay) private view returns
 	(uint256 currentStakesCount, uint256 currentTokenAmount) {
 		if (_countStakesByDay[startDay].stakesCount > 0) {
 			currentStakesCount = _countStakesByDay[startDay].stakesCount;
@@ -652,31 +653,35 @@ contract StakedToken is Context, Ownable {
 		}
 	}
 
-	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) public view //for test public
+	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) private view
 	    returns (uint256 dayCount, uint256 startDay) {
 		uint256 currentTime = getCurrentTime();
 		if (currentTime > beginTime + MIN_STAKED_TIME) {
 			if (lastTime > 0) {
-				if (lastTime >= finishTime) {
+				if (lastTime >= finishTime) { //ok
 					return (0, getDayNumber(lastTime));
 				}
 				if (finishTime == 0) {
-					return ((currentTime - (lastTime + MIN_STAKED_TIME)) / 1 days, getDayNumber(lastTime));
+   					if (currentTime > lastTime + MIN_STAKED_TIME) { //ok
+						return ((currentTime - lastTime) / 1 days, getDayNumber(lastTime));
+					} else { //ok
+						return (0, getDayNumber(lastTime));
+					}
 				} else {
-					if (currentTime > finishTime + MIN_STAKED_TIME) {
+					if (currentTime > finishTime + MIN_STAKED_TIME) { //ok 11
 						return ((finishTime - lastTime) / 1 days, getDayNumber(lastTime));
-					} else {
+					} else { //ok 10
 						return ((currentTime - (lastTime + MIN_STAKED_TIME)) / 1 days, getDayNumber(lastTime));
 					}
 				}
 			} else {
-				if (finishTime == 0) {
+				if (finishTime == 0) { //ok
 					uint256 rewardDayCount = (currentTime - (beginTime + MIN_STAKED_TIME)) / 1 days;
 					return (rewardDayCount, getDayNumber(beginTime));
 				} else {
-					if (currentTime > finishTime + MIN_STAKED_TIME) {
+					if (currentTime > finishTime + MIN_STAKED_TIME) { //ok
 						return ((finishTime - beginTime) / 1 days, getDayNumber(beginTime));
-					} else {
+					} else { //ok
 						return ((currentTime - (beginTime + MIN_STAKED_TIME)) / 1 days, getDayNumber(beginTime));
 					}
 				}
@@ -712,7 +717,7 @@ contract StakedToken is Context, Ownable {
 		_staked[user][index].lastRewardTime = newTime;
 	}
 
-	function getCurrentTime() internal view returns(uint256) {
+	function getCurrentTime() public view returns(uint256) {
 		return block.timestamp + _shiftTime;
 	}
 
