@@ -520,7 +520,7 @@ contract StakedToken is Context, Ownable {
 
 		uint256 stakedAmount = _staked[sender][index].amount;
 
-		_staked[sender][index].amount = 0;
+		//_staked[sender][index].amount = 0;
 		_staked[sender][index].endTime = getCurrentTime();
 
 		totalStakesCount--;
@@ -644,7 +644,7 @@ contract StakedToken is Context, Ownable {
 			currentTokenAmount = _countStakesByDay[startDay].stakedTokenAmount;
 		} else {
 			uint256 currentStartDay = startDay - 1;
-			while(currentStakesCount == 0) {
+			while(currentStakesCount == 0 && startedDayNumber <= currentStartDay) {
 				currentStakesCount = _countStakesByDay[currentStartDay].stakesCount;
 				currentTokenAmount = _countStakesByDay[currentStartDay].stakedTokenAmount;
 				currentStartDay --;
