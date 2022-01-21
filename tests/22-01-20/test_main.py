@@ -21,6 +21,7 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
     #print('tx = ', tx.info())
 
     instance.incrementShiftTime(one_day*3)
+    instance.setRewardTokenByDay(400, {'from':  accounts[2]})
 
     graph.approve(instance, amount*1000, {'from': graph_whale})
     tx = instance.stake(graph_whale, amount, {'from': graph_whale})
@@ -28,6 +29,7 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
     print('getCountStake', instance.getCountStake(graph_whale))
     print('getChangeRewardCount', instance.getChangeRewardCount())
     print('viewChangeRewardByIndex 0', instance.viewChangeRewardByIndex(0))
+    print('viewChangeRewardByIndex 1', instance.viewChangeRewardByIndex(1))
     dayNumber = instance.getCurrentDayNumber()
     print('dayNumber', dayNumber)
     print('viewCountStakesByDay', instance.viewCountStakesByDay(dayNumber))
@@ -37,28 +39,28 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
 
     print('viewUserStake', instance.viewUserStake(graph_whale))
 
-    print('getRewardTokenAmount 19010', instance.getRewardTokenAmount(19010))
-    print('getRewardTokenAmount 19012', instance.getRewardTokenAmount(19012))
-    print('getRewardTokenAmount 19013', instance.getRewardTokenAmount(19013))
-    print('getRewardTokenAmount 19014', instance.getRewardTokenAmount(19014))
+    #print('getRewardTokenAmount 19010', instance.getRewardTokenAmount(19010))
+    #print('getRewardTokenAmount 19012', instance.getRewardTokenAmount(19012))
+    #print('getRewardTokenAmount 19013', instance.getRewardTokenAmount(19013))
+    #print('getRewardTokenAmount 19014', instance.getRewardTokenAmount(19014))
 
-    print('getCurrentCountStakes 19010', instance.getCurrentCountStakes(19010))
-    print('getCurrentCountStakes 19011', instance.getCurrentCountStakes(19011))
-    print('getCurrentCountStakes 19013', instance.getCurrentCountStakes(19013))
-    print('getCurrentCountStakes 19014', instance.getCurrentCountStakes(19014))
-    print('getCurrentCountStakes 19015', instance.getCurrentCountStakes(19015))
+    #print('getCurrentCountStakes 19010', instance.getCurrentCountStakes(19010))
+    #print('getCurrentCountStakes 19011', instance.getCurrentCountStakes(19011))
+    #print('getCurrentCountStakes 19013', instance.getCurrentCountStakes(19013))
+    #print('getCurrentCountStakes 19014', instance.getCurrentCountStakes(19014))
+    #print('getCurrentCountStakes 19015', instance.getCurrentCountStakes(19015))
 
-    print('calcReward - 8 - 19012:', instance.calcReward(8, 19012, amount))
+    #print('calcReward - 8 - 19012:', instance.calcReward(8, 19012, amount))
 
-    print('getDailyAmount 19011', instance.getDailyAmount(19011, amount))
+    #print('getDailyAmount 19011', instance.getDailyAmount(19011, amount))
 
-    print('getDailyAmount 19012', instance.getDailyAmount(19012, amount))
-    print('getDailyAmount 19013', instance.getDailyAmount(19013, amount))
-    print('getDailyAmount 19014', instance.getDailyAmount(19014, amount))
+    #print('getDailyAmount 19012', instance.getDailyAmount(19012, amount))
+    #print('getDailyAmount 19013', instance.getDailyAmount(19013, amount))
+    #print('getDailyAmount 19014', instance.getDailyAmount(19014, amount))
 
     print('viewCountStakesByDay', instance.viewCountStakesByDay(19014))
 
-    print('calcRewardByIndex 0', instance.calcRewardByIndex(graph_whale, 0))
-    print('calcRewardByIndex 1', instance.calcRewardByIndex(graph_whale, 1))
+    print('calcRewardByIndex 0', instance.calcRewardByIndex(graph_whale, 0, 0))
+    print('calcRewardByIndex 1', instance.calcRewardByIndex(graph_whale, 1, 0))
 
     tx = instance.unStakeAny(accounts[0], 1, {'from': graph_whale})

@@ -541,7 +541,7 @@ contract StakedToken is Context, Ownable {
 		uint256 reward = 0;
 
 		for(uint256 i = 0; i < count; i++ ) {
-			(uint256 currentReward, uint256 newLastTime) = calcRewardByIndex(sender, i);
+			(uint256 currentReward, uint256 newLastTime) = calcRewardByIndex(sender, i, 0);
 			reward += currentReward;
 			if (newLastTime > 0) {
 				setLastRewardTime(sender, i, newLastTime);
@@ -597,9 +597,9 @@ contract StakedToken is Context, Ownable {
 		return getCurrentTime() / 1 days;
 	}
 
-	function calcRewardByIndex(address user, uint256 index) public view returns (uint256 reward, uint256 lastTime) {
+	function calcRewardByIndex(address user, uint256 index, uint256 shiftTime) public view returns (uint256 reward, uint256 lastTime) {
 		(uint256 _startTime, uint256 _endTime, uint256 _lastRewardTime, uint256 amount) = viewUserStakeAny(user, index);
-		(uint256 _daysCount, uint256 _startDayNumber) = getRewardDayData(_startTime, _endTime, _lastRewardTime);
+		(uint256 _daysCount, uint256 _startDayNumber) = getRewardDayData(_startTime, _endTime, _lastRewardTime, shiftTime);
 
 		if (_daysCount > 0) {
 			reward = calcReward(_daysCount, _startDayNumber, amount);
@@ -653,9 +653,9 @@ contract StakedToken is Context, Ownable {
 		}
 	}
 
-	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime) private view
+	function getRewardDayData(uint256 beginTime, uint256 finishTime, uint256 lastTime, uint256 shiftTime) private view
 	    returns (uint256 dayCount, uint256 startDay) {
-		uint256 currentTime = getCurrentTime();
+		uint256 currentTime = getCurrentTime() + shiftTime;
 		if (currentTime > beginTime + MIN_STAKED_TIME) {
 			if (lastTime > 0) {
 				if (lastTime >= finishTime) { //ok
