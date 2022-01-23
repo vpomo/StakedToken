@@ -442,15 +442,16 @@ contract StakedToken is Context, Ownable {
 	IERC20 public immutable STAKED_TOKEN;
     uint256 public constant MIN_STAKED_TIME = 30 days;
 	uint256 public constant MAX_STAKED_COUNT = 10;
+	uint256 public constant MAX_CHANGE_REWARD_TOKENS_BY_DAY_COUNT = 1000;
 
 	uint256 public rewardTokensByDay = 300;
-
-	uint256 public immutable startedDayNumber;
 
 	uint256 public totalReceivedReward;
 	uint256 public totalAddedTokenForReward;
 	uint256 public totalStakesCount;
 	uint256 public totalStakedTokens;
+
+	uint256 private immutable startedDayNumber;
 
 	mapping(address => Stake[]) private _staked;
 
@@ -507,7 +508,10 @@ contract StakedToken is Context, Ownable {
 	}
 
     function unStake(address onBehalfOf) external {
-	    unStakeAny(onBehalfOf, 0);
+		uint256 count = getCountStake(_msgSender());
+		for(uint256 i = 0; i < count; i++ ) {
+			unStakeAny(onBehalfOf, i);
+		}
     }
 
 	function unStakeAny(address onBehalfOf, uint256 index) public {
@@ -567,8 +571,22 @@ contract StakedToken is Context, Ownable {
 	}
 
 	function viewUserStake(address user) public view returns
-	(uint256 _startTime, uint256 _endTime, uint256 _lastRewardTime, uint256 _amount) {
-		return viewUserStakeAny(user, 0);
+	(uint256[] memory, uint256[] memory, uint256[] memory, uint256[] memory) {
+		uint256 count = getCountStake(user);
+		uint256[] memory _startTimes = new uint[](count);
+		uint256[] memory _endTimes = new uint[](count);
+		uint256[] memory _lastRewardTimes = new uint[](count);
+		uint256[] memory _amounts = new uint[](count);
+
+		for(uint256 i = 0; i < count; i++ ) {
+			(uint256 _startTime, uint256 _endTime, uint256 _lastRewardTime, uint256 _amount) =
+				viewUserStakeAny(user, i);
+				_startTimes[i] = _startTime;
+				_endTimes[i] = _endTime;
+				_lastRewardTimes[i] = _lastRewardTime;
+				_amounts[i] = _amount;
+		}
+		return(_startTimes, _endTimes, _lastRewardTimes, _amounts);
 	}
 
 	function getCountStake(address user) public view returns (uint256 _count) {
@@ -628,14 +646,16 @@ contract StakedToken is Context, Ownable {
 
 	function getRewardTokenAmount(uint256 startDay) private view returns (uint256) {
 		uint256 index = 0;
-		while(index < changeRewardTokenAll.length) {
-			if (startDay > changeRewardTokenAll[index].currentDayNumber) {
+		ChangeRewardToken[] memory memChangeRewardTokenAll = changeRewardTokenAll;
+
+		while(index < memChangeRewardTokenAll.length) {
+			if (startDay > memChangeRewardTokenAll[index].currentDayNumber) {
 				index++;
 			} else {
-				return changeRewardTokenAll[index].rewardAmount;
+				return memChangeRewardTokenAll[index].rewardAmount;
 			}
 		}
-		return changeRewardTokenAll[index-1].rewardAmount;
+		return memChangeRewardTokenAll[index-1].rewardAmount;
 	}
 
 	function getCurrentCountStakes(uint256 startDay) private view returns
@@ -706,7 +726,10 @@ contract StakedToken is Context, Ownable {
 		uint256 length = changeRewardTokenAll.length;
 		uint256 currentDayNumber = getCurrentDayNumber();
 		if (length > 0) {
-			require(changeRewardTokenAll[length-1].currentDayNumber < currentDayNumber);
+			require(changeRewardTokenAll[length-1].currentDayNumber < currentDayNumber,
+				'You can only change once a day');
+			require(length < MAX_CHANGE_REWARD_TOKENS_BY_DAY_COUNT,
+				'Already reached MAX_CHANGE_REWARD_TOKENS_BY_DAY_COUNT');
 		}
 		ChangeRewardToken memory changeRewardTokenOne = ChangeRewardToken(currentDayNumber, newValue);
 		changeRewardTokenAll.push(changeRewardTokenOne);
