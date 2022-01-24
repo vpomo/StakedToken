@@ -444,7 +444,7 @@ contract StakedToken is Context, Ownable {
 	uint256 public constant MAX_STAKED_COUNT = 10;
 	uint256 public constant MAX_CHANGE_REWARD_TOKENS_BY_DAY_COUNT = 1000;
 
-	uint256 public rewardTokensByDay = 300;
+	uint256 public rewardTokensByDay;
 
 	uint256 public totalReceivedReward;
 	uint256 public totalAddedTokenForReward;
@@ -476,16 +476,15 @@ contract StakedToken is Context, Ownable {
 
 	ChangeRewardToken[] private changeRewardTokenAll;
 
-	uint256 _shiftTime = 0;
-
 	event Staked(address indexed from, address indexed onBehalfOf, uint256 amount);
 	event UnStake(address indexed from, address indexed to, uint256 amount);
 	event GetReward(address indexed from, address indexed to, uint256 amount);
 	event AddRewardFund(address who, uint256 amount);
 	event ChangeRewardTokenByDay(address who, uint256 value);
 
-	constructor(IERC20 stakedToken, address admin) Ownable(admin) {
+	constructor(IERC20 stakedToken, address admin, uint256 currentRewardTokensByDay) Ownable(admin) {
 		require(address(stakedToken) != address(0), 'INVALID_ZERO_ADDRESS');
+		rewardTokensByDay = currentRewardTokensByDay;
 		STAKED_TOKEN = stakedToken;
 		startedDayNumber = getCurrentDayNumber();
 		logRewardTokenByDay(rewardTokensByDay);
@@ -518,21 +517,21 @@ contract StakedToken is Context, Ownable {
 		require(onBehalfOf != address(0), 'INVALID_ZERO_ADDRESS');
 		address sender = _msgSender();
 		require(index < getCountStake(sender), 'INVALID_INDEX');
-		require(_staked[sender][index].endTime == 0, 'NO_FUNDS');
+		if (_staked[sender][index].endTime == 0) {
+			getReward(onBehalfOf);
 
-		getReward(onBehalfOf);
+			uint256 stakedAmount = _staked[sender][index].amount;
 
-		uint256 stakedAmount = _staked[sender][index].amount;
+			_staked[sender][index].endTime = getCurrentTime();
 
-		_staked[sender][index].endTime = getCurrentTime();
+			totalStakesCount--;
+			totalStakedTokens -= stakedAmount;
+			_countStakesByDay[getCurrentDayNumber()].stakesCount = totalStakesCount;
+			_countStakesByDay[getCurrentDayNumber()].stakedTokenAmount = totalStakedTokens;
 
-		totalStakesCount--;
-		totalStakedTokens -= stakedAmount;
-		_countStakesByDay[getCurrentDayNumber()].stakesCount = totalStakesCount;
-		_countStakesByDay[getCurrentDayNumber()].stakedTokenAmount = totalStakedTokens;
-
-		IERC20(STAKED_TOKEN).safeTransfer(onBehalfOf, stakedAmount);
-		emit UnStake(msg.sender, onBehalfOf, stakedAmount);
+			IERC20(STAKED_TOKEN).safeTransfer(onBehalfOf, stakedAmount);
+			emit UnStake(msg.sender, onBehalfOf, stakedAmount);
+		}
 	}
 
 	function getReward(address onBehalfOf) public {
@@ -615,7 +614,8 @@ contract StakedToken is Context, Ownable {
 		return getCurrentTime() / 1 days;
 	}
 
-	function calcRewardByIndex(address user, uint256 index, uint256 shiftTime) public view returns (uint256 reward, uint256 lastTime) {
+	function calcRewardByIndex(address user, uint256 index, uint256 shiftTime) public view returns
+		(uint256 reward, uint256 lastTime) {
 		(uint256 _startTime, uint256 _endTime, uint256 _lastRewardTime, uint256 amount) = viewUserStakeAny(user, index);
 		(uint256 _daysCount, uint256 _startDayNumber) = getRewardDayData(_startTime, _endTime, _lastRewardTime, shiftTime);
 
@@ -649,10 +649,13 @@ contract StakedToken is Context, Ownable {
 		ChangeRewardToken[] memory memChangeRewardTokenAll = changeRewardTokenAll;
 
 		while(index < memChangeRewardTokenAll.length) {
+			if(startDay == memChangeRewardTokenAll[index].currentDayNumber) {
+				return memChangeRewardTokenAll[index].rewardAmount;
+			}
 			if (startDay > memChangeRewardTokenAll[index].currentDayNumber) {
 				index++;
 			} else {
-				return memChangeRewardTokenAll[index].rewardAmount;
+				return memChangeRewardTokenAll[index-1].rewardAmount;
 			}
 		}
 		return memChangeRewardTokenAll[index-1].rewardAmount;
@@ -741,10 +744,6 @@ contract StakedToken is Context, Ownable {
 	}
 
 	function getCurrentTime() public view returns(uint256) {
-		return block.timestamp + _shiftTime;
-	}
-
-	function incrementShiftTime(uint256 incValue) external {
-		_shiftTime += incValue;
+		return block.timestamp;
 	}
 }

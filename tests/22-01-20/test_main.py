@@ -18,9 +18,16 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
 
     graph.approve(instance, amount*1000, {'from': graph_whale})
     tx = instance.stake(graph_whale, amount, {'from': graph_whale})
-    #print('tx = ', tx.info())
 
-    instance.incrementShiftTime(one_day*3)
+    dayNumber = instance.getCurrentDayNumber()
+    startTime = instance.getCurrentTime()
+
+    instance.incrementShiftTime(one_day*2)
+
+    instance.setRewardTokenByDay(200, {'from':  accounts[2]})
+
+    instance.incrementShiftTime(one_day)
+
     instance.setRewardTokenByDay(400, {'from':  accounts[2]})
 
     graph.approve(instance, amount*1000, {'from': graph_whale})
@@ -30,14 +37,17 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
     print('getChangeRewardCount', instance.getChangeRewardCount())
     print('viewChangeRewardByIndex 0', instance.viewChangeRewardByIndex(0))
     print('viewChangeRewardByIndex 1', instance.viewChangeRewardByIndex(1))
-    dayNumber = instance.getCurrentDayNumber()
+    print('getCurrentTime', startTime)
     print('dayNumber', dayNumber)
     print('viewCountStakesByDay', instance.viewCountStakesByDay(dayNumber))
-    tx = instance.unStake(accounts[0], {'from': graph_whale})
+
+    tx = instance.unStakeAny(accounts[0], 0, {'from': graph_whale})
+
+    print('totalStakesCount', instance.totalStakesCount())
+    print('totalStakedTokens', instance.totalStakedTokens())
 
     instance.incrementShiftTime(minStakedTime + one_day*5)
 
-    print('viewUserStake', instance.viewUserStake(graph_whale))
 
     #print('getRewardTokenAmount 19010', instance.getRewardTokenAmount(19010))
     #print('getRewardTokenAmount 19012', instance.getRewardTokenAmount(19012))
@@ -58,9 +68,28 @@ def test_staked_token(chain, accounts, interface, instance, graph, graph_whale):
     #print('getDailyAmount 19013', instance.getDailyAmount(19013, amount))
     #print('getDailyAmount 19014', instance.getDailyAmount(19014, amount))
 
-    print('viewCountStakesByDay', instance.viewCountStakesByDay(19014))
+    print('viewCountStakesByDay', instance.viewCountStakesByDay(19021))
 
+    stakeInfo = instance.viewUserStakeAny(graph_whale, 0)
+    print('viewUserStakeAny ()', stakeInfo)
+    #print('getRewardDayData ()', instance.getRewardDayData(startTime, stakeInfo[1], 0, 35*86400))
+    #print('getRewardDayData ()', instance.getRewardDayData(1642959247, 1643218450, 0, 35*86400))
+
+    #print('tx = ', tx.info())
     print('calcRewardByIndex 0', instance.calcRewardByIndex(graph_whale, 0, 0))
     print('calcRewardByIndex 1', instance.calcRewardByIndex(graph_whale, 1, 0))
 
-    tx = instance.unStakeAny(accounts[0], 1, {'from': graph_whale})
+    #print('calcReward - 3 - 19015:', instance.calcReward(3, 19015, amount))
+
+    #print('getDailyAmount 19012', instance.getDailyAmount(19015, amount))
+    #print('getDailyAmount 19013', instance.getDailyAmount(19016, amount))
+    #print('getDailyAmount 19014', instance.getDailyAmount(19017, amount))
+
+    #print('getRewardTokenAmount 19015', instance.getRewardTokenAmount(19015))
+    #print('getRewardTokenAmount 19016', instance.getRewardTokenAmount(19016))
+    #print('getRewardTokenAmount 19017', instance.getRewardTokenAmount(19017))
+    #print('getRewardTokenAmount 19018', instance.getRewardTokenAmount(19018))
+    #print('getRewardTokenAmount 19019', instance.getRewardTokenAmount(19019))
+    #print('getRewardTokenAmount 19020', instance.getRewardTokenAmount(19020))
+
+    tx = instance.unStake(accounts[0], {'from': graph_whale})
