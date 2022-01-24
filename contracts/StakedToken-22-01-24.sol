@@ -681,16 +681,16 @@ contract StakedToken is Context, Ownable {
 		uint256 currentTime = getCurrentTime() + shiftTime;
 		if (currentTime > beginTime + MIN_STAKED_TIME) {
 			if (lastTime > 0) {
-				if (lastTime >= finishTime) { //ok
-					return (0, getDayNumber(lastTime));
-				}
 				if (finishTime == 0) {
    					if (currentTime > lastTime + MIN_STAKED_TIME) { //ok
-						return ((currentTime - lastTime) / 1 days, getDayNumber(lastTime));
+						return ((currentTime - lastTime - MIN_STAKED_TIME) / 1 days, getDayNumber(lastTime));
 					} else { //ok
 						return (0, getDayNumber(lastTime));
 					}
 				} else {
+					if (lastTime >= finishTime) { //ok
+						return (0, getDayNumber(lastTime));
+					}
 					if (currentTime > finishTime + MIN_STAKED_TIME) { //ok 11
 						return ((finishTime - lastTime) / 1 days, getDayNumber(lastTime));
 					} else { //ok 10
